@@ -104,7 +104,7 @@ public class Polynomial extends Activity {
                 });
 
             } else {
-                polyText.setText("WYznacznik główny równy 0");
+                polyText.setText("Wyznacznik główny równy 0");
             }
         }
         else {
