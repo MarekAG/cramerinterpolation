@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -32,7 +33,7 @@ public class Polynomial extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_polynomial);
 
-        polyText = (TextView) findViewById(R.id.textViewPoly);
+        polyText = (TextView) findViewById(R.id.textViewPolyDerivative);
         Bundle bundle = getIntent().getExtras();
         if(bundle != null) {
             ArrayList<Double> xList = (ArrayList<Double>) bundle.getSerializable("xList");
@@ -117,7 +118,10 @@ public class Polynomial extends Activity {
         DecimalFormat df = new DecimalFormat("####0.00");
 
         for (int i = 0; i < a.length; i++) {
-            if (a[i] == 0) continue;
+            Log.d("poly ", df.format(a[i]));
+            if (Math.abs(a[i]) < 0.01) continue;
+            if(a[i] < 0)
+                polyText.append("(");
             if (i == a.length - 1) {
                 polyText.append(Html.fromHtml(df.format(a[i]) + "x<<sup>" + i + "</sup>"));
             } else if (i == 0) {
@@ -127,7 +131,9 @@ public class Polynomial extends Activity {
             } else {
                 polyText.append(Html.fromHtml(df.format(a[i]) + "x<<sup>" + i + "</sup>"));
             }
-            if (i<a.length-1 && a[i+1] != 0) {
+            if(a[i] < 0)
+                polyText.append(")");
+            if (i<a.length-1 && Math.abs(a[i]) > 0.01) {
                 polyText.append(" + ");
             }
         }

@@ -55,8 +55,13 @@ public class MainActivity extends Activity {
                 }
                 Double doubleX = Double.parseDouble(textX);
                 Double doubleY = Double.parseDouble(textY);
-                xList.add(doubleX);
-                yList.add(doubleY);
+                if(xList.contains(doubleX)) {
+                    Toast.makeText(getApplication(), "Węzły muszą być jednokrotne!", Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    xList.add(doubleX);
+                    yList.add(doubleY);
+                }
 
                 LayoutInflater layoutInflater =
                         (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);

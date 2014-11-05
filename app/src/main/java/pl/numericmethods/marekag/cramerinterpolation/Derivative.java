@@ -28,7 +28,7 @@ public class Derivative extends Activity {
         double[] polynomial = bundle.getDoubleArray("polynomial");
         int rank = bundle.getInt("value");
 
-        derivativeTextView = (TextView) findViewById(R.id.textViewPoly);
+        derivativeTextView = (TextView) findViewById(R.id.textViewPolyDerivative);
         derivative(polynomial, rank);
 
         printPoly(polynomial, derivativeTextView);
@@ -69,7 +69,7 @@ public class Derivative extends Activity {
         DecimalFormat df = new DecimalFormat("####0.00");
 
         for (int i = 0; i < a.length; i++) {
-            if (a[i] == 0) continue;
+            if (Math.abs(a[i]) < 0.01) continue;
             if (i == a.length - 1) {
                 polyText.append(Html.fromHtml(df.format(a[i]) + "x<<sup>" + i + "</sup>"));
             } else if (i == 0) {
@@ -79,9 +79,12 @@ public class Derivative extends Activity {
             } else {
                 polyText.append(Html.fromHtml(df.format(a[i]) + "x<<sup>" + i + "</sup>"));
             }
-            if (i<a.length-1 && a[i+1] != 0) {
+            if (i<a.length-1 && Math.abs(a[i]) > 0.01) {
                 polyText.append(" + ");
             }
+        }
+        if (polyText.getText().toString().trim().isEmpty()) {
+            polyText.setText("0");
         }
     }
 
