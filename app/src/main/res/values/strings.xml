@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Interpolacja metodą Cramera</string>
+    <string name="action_settings">Ustawienia</string>
+    <string name="ask_for_values">Podaj wartości punktów:</string>
+    <string name="give_values">Podaj pary liczb x, y:</string>
+    <string name="x">x:</string>
+    <string name="y">y:</string>
+    <string name="add">Dodaj</string>
+    <string name="remove">Usuń</string>
+    <string name="get_polynomial">Policz wielomian interpolacyjny</string>
+    <string name="title_activity_polynomial">Wielomian</string>
+    <string name="action_derivative">Policz pochodną</string>
+    <string name="title_activity_derivative">Pochodna</string>
+    <string name="derivativeButton">Policz pochodną:</string>
+    <string name="clearButton">Wyczyść</string>
+
+</resources>
