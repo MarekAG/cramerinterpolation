@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -35,6 +34,7 @@ public class Polynomial extends Activity {
 
         polyText = (TextView) findViewById(R.id.textViewPolyDerivative);
         Bundle bundle = getIntent().getExtras();
+
         if(bundle != null) {
             ArrayList<Double> xList = (ArrayList<Double>) bundle.getSerializable("xList");
             ArrayList<Double> yList = (ArrayList<Double>) bundle.getSerializable("yList");
@@ -73,9 +73,16 @@ public class Polynomial extends Activity {
                 }
 
                 final double[] a = new double[rank];
+                int nonZeroValues = 0;
 
-                for (int i = 0; i < rank; i++)
+                for (int i = 0; i < rank; i++) {
                     a[i] = (wArr[i + 1] / wArr[0]);
+                    if (Math.abs(a[i]) >= 0.001) {
+                        nonZeroValues++;
+                    }
+                }
+
+                final int nonZeroCount = nonZeroValues;
 
                 printPoly(a, polyText);
                 printPolyGraph(a);
@@ -89,17 +96,17 @@ public class Polynomial extends Activity {
                         String textDerivative = editTextDerivative.getText().toString();
                         if (textDerivative != null && !textDerivative.equals("")) {
                             int valueDerivative = Integer.parseInt(textDerivative);
-                            if (valueDerivative > 0 && valueDerivative < rank) {
+                            if (valueDerivative >= 0 && valueDerivative <= nonZeroCount) {
                                 Intent derivative = new Intent(getApplicationContext(), Derivative.class);
                                 derivative.putExtra("polynomial", a);
                                 derivative.putExtra("value", valueDerivative);
                                 startActivity(derivative);
 
                             } else {
-                                Toast.makeText(getApplicationContext(), "Pochodna musi być rzędu 1 - " + (a.length-1) + '!', Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Pochodna musi być rzędu od 0 do " + nonZeroCount + '!', Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            Toast.makeText(getApplicationContext(), "Pochodna musi być rzędu 1 - " + (a.length-1) + '!', Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Pochodna musi być rzędu od 0 do " + nonZeroCount + '!', Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -118,13 +125,12 @@ public class Polynomial extends Activity {
         DecimalFormat df = new DecimalFormat("####0.00");
 
         for (int i = 0; i < a.length; i++) {
-            Log.d("poly ", df.format(a[i]));
-            if (Math.abs(a[i]) < 0.01) continue;
-            if(a[i] < 0)
+            if (Math.abs(a[i]) < 0.001) continue;
+            if (a[i] < 0) {
                 polyText.append("(");
-            if (i == a.length - 1) {
-                polyText.append(Html.fromHtml(df.format(a[i]) + "x<<sup>" + i + "</sup>"));
-            } else if (i == 0) {
+            }
+
+            if (i == 0) {
                 polyText.append(Html.fromHtml(df.format(a[i])));
             } else if (i == 1) {
                 polyText.append(Html.fromHtml(df.format(a[i]) + "x"));
@@ -133,9 +139,12 @@ public class Polynomial extends Activity {
             }
             if(a[i] < 0)
                 polyText.append(")");
-            if (i<a.length-1 && Math.abs(a[i]) > 0.01) {
+            if (i<a.length-1 && Math.abs(a[i+1]) > 0.001) {
                 polyText.append(" + ");
             }
+        }
+        if (polyText.getText().toString().trim().isEmpty()) {
+            polyText.setText("0");
         }
     }
 
@@ -166,7 +175,6 @@ public class Polynomial extends Activity {
         }
         return value;
     }
-
 
     private double det(int rank, int row, double[] vector,
                        double[][] matrix) {

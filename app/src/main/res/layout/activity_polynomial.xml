@@ -17,13 +17,13 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
-        android:clickable="true" />
+        android:textIsSelectable="true" />
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="10dp"
         android:layout_below="@+id/textViewPolyDerivative">
 
         <LinearLayout
@@ -61,7 +61,9 @@
                 android:ems="10"
                 android:id="@+id/editTextDerivative"
                 android:layout_below="@+id/graphLayout"
-                android:layout_toRightOf="@+id/buttonDerivative" />
+                android:layout_toRightOf="@+id/buttonDerivative"
+                android:maxLength="3"
+                android:numeric="integer" />
         </TableRow>
     </LinearLayout>
 

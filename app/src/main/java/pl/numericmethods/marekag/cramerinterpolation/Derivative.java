@@ -3,8 +3,6 @@ package pl.numericmethods.marekag.cramerinterpolation;
 import android.app.Activity;
 import android.os.Bundle;
 import android.text.Html;
-import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -69,17 +67,21 @@ public class Derivative extends Activity {
         DecimalFormat df = new DecimalFormat("####0.00");
 
         for (int i = 0; i < a.length; i++) {
-            if (Math.abs(a[i]) < 0.01) continue;
-            if (i == a.length - 1) {
-                polyText.append(Html.fromHtml(df.format(a[i]) + "x<<sup>" + i + "</sup>"));
-            } else if (i == 0) {
+            if (Math.abs(a[i]) < 0.001) continue;
+            if (a[i] < 0) {
+                polyText.append("(");
+            }
+
+            if (i == 0) {
                 polyText.append(Html.fromHtml(df.format(a[i])));
             } else if (i == 1) {
                 polyText.append(Html.fromHtml(df.format(a[i]) + "x"));
             } else {
                 polyText.append(Html.fromHtml(df.format(a[i]) + "x<<sup>" + i + "</sup>"));
             }
-            if (i<a.length-1 && Math.abs(a[i]) > 0.01) {
+            if(a[i] < 0)
+                polyText.append(")");
+            if (i<a.length-1 && Math.abs(a[i+1]) > 0.001) {
                 polyText.append(" + ");
             }
         }
