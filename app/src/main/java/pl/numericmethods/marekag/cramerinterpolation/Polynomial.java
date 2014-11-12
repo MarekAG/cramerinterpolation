@@ -1,10 +1,12 @@
 package pl.numericmethods.marekag.cramerinterpolation;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -34,89 +36,183 @@ public class Polynomial extends Activity {
 
         polyText = (TextView) findViewById(R.id.textViewPolyDerivative);
         Bundle bundle = getIntent().getExtras();
+        buttonDerivative = (Button) findViewById(R.id.buttonDerivative);
 
-        if(bundle != null) {
-            ArrayList<Double> xList = (ArrayList<Double>) bundle.getSerializable("xList");
-            ArrayList<Double> yList = (ArrayList<Double>) bundle.getSerializable("yList");
+        new CountDet(this).execute(bundle);
+    }
 
-            final int rank = bundle.getInt("rank");
+    private class CountDet extends AsyncTask<Bundle, Integer, double[]> {
 
-            double[][] matrix = new double[rank][rank];
-            double[] y = new double[rank];
-            double[] vector = new double[rank];
+        Context context;
+        ProgressDialog dialog;
 
-            for (int i = 0; i < rank; i++) {
-                y[i] = yList.get(i);
-                for (int j = 0; j < rank; j++) {
-                    matrix[i][j] = Math.pow(xList.get(i), j);
-                }
-            }
-            for (int i = 0; i < rank; i++) {
-                vector[i] = i;
-            }
+        public CountDet(Context context) {
+            this.context = context;
+        }
 
-            double[] wArr = new double[rank + 1];
+        @Override
+        protected void onPreExecute() {
+            dialog = new ProgressDialog(context);
+            dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            dialog.setCancelable(false);
+            dialog.setMessage("Trwa wyznaczanie wielomianu. Proszę czekać!");
+            dialog.show();
+        }
 
-            wArr[0] = det(rank, 0, vector, matrix);
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            dialog.setProgress(progress[0]);
+            super.onProgressUpdate(progress);
 
-            if (wArr[0] != 0) {
-                double[] pom = Arrays.copyOf(y, rank);
+        }
+
+        @Override
+        protected double[] doInBackground(Bundle... bundles) {
+            Bundle bundle = bundles[0];
+            if (bundle != null) {
+                ArrayList<Double> xList = (ArrayList<Double>) bundle.getSerializable("xList");
+                ArrayList<Double> yList = (ArrayList<Double>) bundle.getSerializable("yList");
+
+                final int rank = bundle.getInt("rank");
+
+                double[][] matrix = new double[rank][rank];
+                double[] y = new double[rank];
+                double[] vector = new double[rank];
 
                 for (int i = 0; i < rank; i++) {
-                    y = pom;
-                    replaceColumn(rank, i, y, matrix);
+                    y[i] = yList.get(i);
                     for (int j = 0; j < rank; j++) {
-                        vector[j] = j;
+                        matrix[i][j] = Math.pow(xList.get(i), j);
+                    }
+                }
+                for (int i = 0; i < rank; i++) {
+                    vector[i] = i;
+                }
+
+                double[] wArr = new double[rank + 1];
+
+                wArr[0] = det(rank, 0, vector, matrix);
+
+                if (wArr[0] != 0) {
+                    double[] pom = Arrays.copyOf(y, rank);
+                    for (int i = 0; i < rank; i++) {
+                        y = pom;
+                        replaceColumn(rank, i, y, matrix);
+                        for (int j = 0; j < rank; j++) {
+                            publishProgress((int) (((i * rank + j) / (float) (rank * rank)) * 100));
+                            vector[j] = j;
+                        }
+
+                        wArr[i + 1] = det(rank, 0, vector, matrix);
                     }
 
-                    wArr[i + 1] = det(rank, 0, vector, matrix);
+
                 }
 
                 final double[] a = new double[rank];
-                int nonZeroValues = 0;
 
                 for (int i = 0; i < rank; i++) {
                     a[i] = (wArr[i + 1] / wArr[0]);
-                    if (Math.abs(a[i]) >= 0.001) {
-                        nonZeroValues++;
                     }
+
+                return a;
+
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(final double[] a) {
+            dialog.dismiss();
+            printPoly(a, polyText);
+            printPolyGraph(a);
+
+            int nonZeroValues = 0;
+
+            for (double d : a) {
+                if (Math.abs(d) >= 0.01) {
+                    nonZeroValues++;
                 }
+            }
 
-                final int nonZeroCount = nonZeroValues;
+            final int nonZeroCount = nonZeroValues;
 
-                printPoly(a, polyText);
-                printPolyGraph(a);
+            buttonDerivative.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    editTextDerivative = (EditText) findViewById(R.id.editTextDerivative);
+                    String textDerivative = editTextDerivative.getText().toString();
+                    if (textDerivative != null && !textDerivative.equals("")) {
+                        int valueDerivative = Integer.parseInt(textDerivative);
+                        if (valueDerivative >= 0 && valueDerivative <= nonZeroCount) {
+                            Intent derivative = new Intent(getApplicationContext(), Derivative.class);
+                            derivative.putExtra("polynomial", a);
+                            derivative.putExtra("value", valueDerivative);
+                            startActivity(derivative);
 
-                buttonDerivative = (Button) findViewById(R.id.buttonDerivative);
-
-                buttonDerivative.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        editTextDerivative = (EditText) findViewById(R.id.editTextDerivative);
-                        String textDerivative = editTextDerivative.getText().toString();
-                        if (textDerivative != null && !textDerivative.equals("")) {
-                            int valueDerivative = Integer.parseInt(textDerivative);
-                            if (valueDerivative >= 0 && valueDerivative <= nonZeroCount) {
-                                Intent derivative = new Intent(getApplicationContext(), Derivative.class);
-                                derivative.putExtra("polynomial", a);
-                                derivative.putExtra("value", valueDerivative);
-                                startActivity(derivative);
-
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Pochodna musi być rzędu od 0 do " + nonZeroCount + '!', Toast.LENGTH_SHORT).show();
-                            }
                         } else {
                             Toast.makeText(getApplicationContext(), "Pochodna musi być rzędu od 0 do " + nonZeroCount + '!', Toast.LENGTH_SHORT).show();
                         }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Pochodna musi być rzędu od 0 do " + nonZeroCount + '!', Toast.LENGTH_SHORT).show();
                     }
-                });
+                }
+            });
+        }
 
+        private double det(int rank, int row, double[] vector,
+                           double[][] matrix) {
+            double columns[] = new double[20];
+
+            double sum;
+            int i, j, k, m;
+
+            if (rank == 1) {
+                return matrix[row][(int) vector[0]];
             } else {
-                polyText.setText("Wyznacznik główny równy 0");
+                sum = 0;
+                m = 1;
+                for (i = 0; i < rank; i++) {
+                    k = 0;
+                    for (j = 0; j < rank - 1; j++) {
+                        if (k == i) {
+                            k++;
+                        }
+                        columns[j] = vector[k];
+                        k++;
+                    }
+                    sum += m * matrix[row][(int) vector[i]]
+                            * det(rank - 1, row + 1, columns, matrix);
+                    m = -m;
+                }
+                return sum;
             }
         }
-        else {
-            finish();
+
+        private void replaceColumn(int rank, int column, double[] y,
+                                   double[][] matrix) {
+            double[] pom = new double[rank];
+
+            if (column < 1) {
+                for (int i = 0; i < rank; i++) {
+                    pom[i] = matrix[i][column];
+                    matrix[i][column] = y[i];
+                    y[i] = pom[i];
+                }
+            } else if (column == rank) {
+                for (int i = 0; i < rank; i++) {
+                    pom[i] = matrix[i][column - 1];
+                    matrix[i][column - 1] = y[i];
+                    y[i] = pom[i];
+                }
+            } else {
+                for (int i = 0; i < rank; i++) {
+                    pom[i] = matrix[i][column];
+                    matrix[i][column] = matrix[i][column - 1];
+                    matrix[i][column - 1] = y[i];
+                    y[i] = pom[i];
+                }
+            }
         }
     }
 
@@ -125,7 +221,7 @@ public class Polynomial extends Activity {
         DecimalFormat df = new DecimalFormat("####0.00");
 
         for (int i = 0; i < a.length; i++) {
-            if (Math.abs(a[i]) < 0.001) continue;
+            if (Math.abs(a[i]) < 0.01) continue;
             if (a[i] < 0) {
                 polyText.append("(");
             }
@@ -139,7 +235,7 @@ public class Polynomial extends Activity {
             }
             if(a[i] < 0)
                 polyText.append(")");
-            if (i<a.length-1 && Math.abs(a[i+1]) > 0.001) {
+            if (i<a.length-1 && Math.abs(a[i+1]) > 0.01) {
                 polyText.append(" + ");
             }
         }
@@ -174,71 +270,6 @@ public class Polynomial extends Activity {
             value += Math.round((a[i] * Math.pow(x, i)) * 1000.0) / 1000.0;
         }
         return value;
-    }
-
-    private double det(int rank, int row, double[] vector,
-                       double[][] matrix) {
-        double columns[] = new double[20];
-
-        double sum;
-        int i, j, k, m;
-
-        if (rank == 1) {
-            return matrix[row][(int) vector[0]];
-        } else {
-            sum = 0;
-            m = 1;
-            for (i = 0; i < rank; i++) {
-                k = 0;
-                for (j = 0; j < rank - 1; j++) {
-                    if (k == i) {
-                        k++;
-                    }
-                    columns[j] = vector[k];
-                    k++;
-                }
-                sum += m * matrix[row][(int) vector[i]]
-                        * det(rank - 1, row + 1, columns, matrix);
-                m = -m;
-            }
-            return sum;
-        }
-    }
-
-    private void replaceColumn(int rank, int column, double[] y,
-                               double[][] matrix) {
-        double[] pom = new double[rank];
-
-        if (column < 1) {
-            for (int i = 0; i < rank; i++) {
-                pom[i] = matrix[i][column];
-                matrix[i][column] = y[i];
-                y[i] = pom[i];
-            }
-        } else if (column == rank) {
-            for (int i = 0; i < rank; i++) {
-                pom[i] = matrix[i][column - 1];
-                matrix[i][column - 1] = y[i];
-                y[i] = pom[i];
-            }
-        } else {
-            for (int i = 0; i < rank; i++) {
-                pom[i] = matrix[i][column];
-                matrix[i][column] = matrix[i][column - 1];
-                matrix[i][column - 1] = y[i];
-                y[i] = pom[i];
-            }
-        }
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        return id == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 
 }

@@ -1,10 +1,12 @@
 package pl.numericmethods.marekag.cramerinterpolation;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,15 +43,34 @@ public class MainActivity extends Activity {
         buttonGetPoly = (Button) findViewById(R.id.btnGetPoly);
         buttonClear = (Button) findViewById(R.id.buttonClear);
 
+        editTextX.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
+                if (keyEvent.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                    editTextY.requestFocus();
+                    return true;
+                }
+                return false;
+            }
+        });
 
+        editTextY.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
+                if (keyEvent.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                    buttonAdd.performClick();
+                    return true;
+                }
+                return false;
+            }
+        });
 
         buttonAdd.setOnClickListener(new View.OnClickListener(){
-
             @Override
             public void onClick(View arg0) {
                 String textX = editTextX.getText().toString();
                 String textY = editTextY.getText().toString();
-                if (textX.matches("") || textY.matches("")) {
+                if (textX.trim().matches("") || textX.trim().matches("-") || textY.trim().matches("") || textY.trim().matches("-")) {
                     Toast.makeText(getApplication(), "Współrzędne nie mogą być puste!", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -65,7 +86,7 @@ public class MainActivity extends Activity {
 
                 LayoutInflater layoutInflater =
                         (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                final View addView = layoutInflater.inflate(R.layout.row, null);
+                @SuppressLint("InflateParams") final View addView = layoutInflater.inflate(R.layout.row, null);
                 TextView textOut = (TextView)addView.findViewById(R.id.textOut);
                 textOut.setText(Html.fromHtml("x<sub>"+xList.lastIndexOf(doubleX)+"</sub>= "+textX+" y<sub>"+xList.lastIndexOf(doubleX)+"</sub>= "+textY));
 
@@ -74,7 +95,6 @@ public class MainActivity extends Activity {
                 editTextX.requestFocus();
                 container.addView(addView);
             }});
-
 
         buttonClear.setOnClickListener(new View.OnClickListener(){
 
@@ -102,24 +122,5 @@ public class MainActivity extends Activity {
                 startActivity(polyActivity);
             }
         });
-
-
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        return id == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 }

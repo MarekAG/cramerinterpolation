@@ -47,7 +47,6 @@ public class Derivative extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-
     private void derivative(double[] a, int j) {
         for (int k = 0; k < j; k++) {
             for (int i = 0; i < a.length; i++) {
@@ -67,7 +66,7 @@ public class Derivative extends Activity {
         DecimalFormat df = new DecimalFormat("####0.00");
 
         for (int i = 0; i < a.length; i++) {
-            if (Math.abs(a[i]) < 0.001) continue;
+            if (Math.abs(a[i]) < 0.01) continue;
             if (a[i] < 0) {
                 polyText.append("(");
             }
@@ -81,7 +80,7 @@ public class Derivative extends Activity {
             }
             if(a[i] < 0)
                 polyText.append(")");
-            if (i<a.length-1 && Math.abs(a[i+1]) > 0.001) {
+            if (i<a.length-1 && Math.abs(a[i+1]) > 0.01) {
                 polyText.append(" + ");
             }
         }
@@ -108,7 +107,6 @@ public class Derivative extends Activity {
 
         LinearLayout layout = (LinearLayout) findViewById(R.id.graphLayout);
         layout.addView(graphView);
-
     }
 
     protected double getPolyValue(double[] a, double x) {
